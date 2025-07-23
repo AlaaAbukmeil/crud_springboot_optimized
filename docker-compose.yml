@@ -7,6 +7,7 @@ services:
       - "5432:5432"
     volumes:
       - ${HOME}/energybox/postgres:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     environment:
       - POSTGRES_PASSWORD=energybox_pass
       - POSTGRES_USER=energybox_user
