@@ -2,6 +2,8 @@ package com.energybox.backendcodingchallenge.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -28,9 +30,12 @@ public class Sensor {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gateway_id")
     @OnDelete(action = OnDeleteAction.SET_NULL)
+    @ToString.Exclude
     private Gateway gateway;
 
     @ManyToMany
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JoinTable(
             schema = "devices",
             name = "sensor_sensor_types",

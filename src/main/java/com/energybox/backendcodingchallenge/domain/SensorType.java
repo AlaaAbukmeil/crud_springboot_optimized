@@ -2,6 +2,8 @@ package com.energybox.backendcodingchallenge.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -9,6 +11,7 @@ import java.util.Set;
 
 @Data
 @Entity
+
 @Table(schema = "devices", name = "sensor_types")
 public class SensorType {
 
@@ -20,6 +23,8 @@ public class SensorType {
     private String type;
 
     @ManyToMany(mappedBy = "types")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Sensor> sensors = new HashSet<>();
 
 }
