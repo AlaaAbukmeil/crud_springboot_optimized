@@ -38,7 +38,7 @@ public class Sensor {
     @EqualsAndHashCode.Exclude
     @JoinTable(
             schema = "devices",
-            name = "sensor_sensor_types",
+            name = "sensorId_with_typeId",
             joinColumns = @JoinColumn(name = "sensor_id"),
             inverseJoinColumns = @JoinColumn(name = "sensor_type_id")
     )

@@ -20,7 +20,7 @@ CREATE TABLE devices.sensor_types (
 );
 
 -- if sensor id gets deleted, remove all rows with sensor id. same with type but it wont happen
-CREATE TABLE devices.sensor_sensor_types (
+CREATE TABLE devices.sensorId_with_typeId (
   sensor_id      INTEGER REFERENCES devices.sensors(id) ON DELETE CASCADE,
   sensor_type_id INTEGER REFERENCES devices.sensor_types(id) ON DELETE CASCADE,
   PRIMARY KEY (sensor_id, sensor_type_id)
