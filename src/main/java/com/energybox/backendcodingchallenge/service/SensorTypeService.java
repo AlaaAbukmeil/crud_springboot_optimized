@@ -4,6 +4,7 @@ import com.energybox.backendcodingchallenge.domain.Sensor;
 import com.energybox.backendcodingchallenge.domain.SensorType;
 import com.energybox.backendcodingchallenge.repository.SensorRepository;
 import com.energybox.backendcodingchallenge.repository.SensorTypeRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,9 +27,7 @@ public class SensorTypeService {
 
     public void delete(Long typeId) {
         SensorType toDelete = typeRepo.findById(typeId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "SensorType not found"
-                ));
+                .orElseThrow(() -> new EntityNotFoundException("Sensor Type with id " + typeId + " not found"));
 
         List<Sensor> sensors = sensorRepo.findByTypes_Type(toDelete.getType());
 
@@ -39,6 +38,12 @@ public class SensorTypeService {
         sensorRepo.saveAll(sensors);
 
         typeRepo.delete(toDelete);
+    }
+
+    public SensorType findSensorTypeByName(String typeName) {
+
+        return typeRepo.findByType(typeName)
+                .orElseThrow(() -> new EntityNotFoundException("Sensor Type with typename " + typeName + " not found"));
     }
 
 }
