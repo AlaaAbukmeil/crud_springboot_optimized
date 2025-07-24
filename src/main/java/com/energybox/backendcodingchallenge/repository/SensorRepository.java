@@ -12,5 +12,5 @@ public interface SensorRepository extends JpaRepository<Sensor, Long> {
 //    sensor 1 --> humidity --> return matching type
 //             --> pressure
     List<Sensor> findByTypes_Type(String type);
-
+    List<Sensor> findByGatewayIsNull();
 }

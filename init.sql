@@ -26,13 +26,14 @@ CREATE TABLE devices.sensorId_with_typeId (
   PRIMARY KEY (sensor_id, sensor_type_id)
 );
 
--- store only one row of sensor id regardless of type as we only need last
+-- store only one row of sensor id & type as we only need last
 CREATE TABLE devices.sensor_last_readings (
-  sensor_id     INTEGER PRIMARY KEY
-                    REFERENCES devices.sensors(id)
-                    ON DELETE CASCADE,
-  reading_time  TIMESTAMPTZ NOT NULL,
-  reading_value NUMERIC     NOT NULL
+  id              SERIAL PRIMARY KEY,
+  sensor_id       INTEGER REFERENCES devices.sensors(id) ON DELETE CASCADE,
+  sensor_type_id  INTEGER REFERENCES devices.sensor_types(id) ON DELETE CASCADE,
+  reading_time    TIMESTAMP WITH TIME ZONE NOT NULL,
+  reading_value   NUMERIC NOT NULL,
+  UNIQUE(sensor_id, sensor_type_id)
 );
 
 
