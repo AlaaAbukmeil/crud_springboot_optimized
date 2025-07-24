@@ -17,10 +17,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/gateways")
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class GatewayController {
     private final GatewayService gatewayService;
-    private final GatewayMapper gatewayMapper;
+    private final GatewayMapper  gatewayMapper;
+
+    public GatewayController(GatewayService gatewayService,
+                             GatewayMapper  gatewayMapper) {
+        this.gatewayService = gatewayService;
+        this.gatewayMapper  = gatewayMapper;
+    }
 
     @Operation(summary = "Get all gateways")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved all gateways")
@@ -69,7 +75,7 @@ public class GatewayController {
 
 
     @Operation(summary = "Delete gateway")
-    @DeleteMapping("/delete/{gatewayId}")
+    @DeleteMapping("/{gatewayId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteGateway(@PathVariable Long gatewayId) {
 

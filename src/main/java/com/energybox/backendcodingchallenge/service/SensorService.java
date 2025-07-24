@@ -3,9 +3,10 @@ package com.energybox.backendcodingchallenge.service;
 import com.energybox.backendcodingchallenge.domain.Gateway;
 import com.energybox.backendcodingchallenge.domain.Sensor;
 import com.energybox.backendcodingchallenge.domain.SensorType;
-import com.energybox.backendcodingchallenge.dto.SensorMapper;
 import com.energybox.backendcodingchallenge.dto.request.CreateSensorRequest;
+import com.energybox.backendcodingchallenge.repository.GatewayRepository;
 import com.energybox.backendcodingchallenge.repository.SensorRepository;
+import com.energybox.backendcodingchallenge.repository.SensorTypeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SensorService {
     private final SensorRepository sensorRepo;
-    private final GatewayService gatewayService;
-    private final SensorTypeService sensorTypeService;
-    private final SensorMapper sensorMapper;
+    private final GatewayRepository gatewayRepo;
+    private final SensorTypeRepository sensorTypeRepository;
 
 
     public List<Sensor> findAll() {
@@ -31,31 +31,40 @@ public class SensorService {
 
     public List<Sensor> findByGateway(Long gatewayId)
     {
-        gatewayService.findGatewayById(gatewayId);
+        gatewayRepo.findById(gatewayId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Gateway with id " + gatewayId + " not found"));
 
 
         return sensorRepo.findByGatewayId(gatewayId);
     }
 
     public List<Sensor> findByType(String type) {
-        sensorTypeService.findSensorTypeByName(type);
+        sensorTypeRepository.findByType(type)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "SensorType '" + type + "' not found"));
+
         return sensorRepo.findByTypes_Type(type);
     }
 
 
     public Sensor create(CreateSensorRequest request) {
         // Convert DTO to entity
-        Sensor sensor = sensorMapper.fromCreateRequest(request);
+        Sensor sensor = new Sensor();
+        sensor.setName(request.getName());
 
         // Set gateway if provided
         if (request.getGateway() != null) {
-            Gateway gateway = gatewayService.findGatewayById(request.getGateway().getId());
-
+            Gateway gateway = gatewayRepo.findById(request.getGateway().getId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Gateway with id " + request.getGateway().getId() + " not found"));
             sensor.setGateway(gateway);
         }
 
         Set<SensorType> sensorTypes = request.getTypes().stream()
-                .map(typeName -> sensorTypeService.findSensorTypeByName(typeName))
+                .map(typeName -> sensorTypeRepository.findByType(typeName)
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                "SensorType '" + typeName + "' not found")))
                 .collect(Collectors.toSet());
         sensor.setTypes(sensorTypes);
 
@@ -64,7 +73,9 @@ public class SensorService {
     public Sensor assignGateway(Long sensorId, Long gatewayId) {
         Sensor s = findSensorById(sensorId);
 
-        Gateway g = gatewayService.findGatewayById(gatewayId);
+        Gateway g = gatewayRepo.findById(gatewayId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Gateway with id " + gatewayId + " not found"));
 
         s.setGateway(g);
         return sensorRepo.save(s);
@@ -73,7 +84,9 @@ public class SensorService {
     public Sensor addSensorType(Long sensorId, String typeName) {
 
         Sensor sensor = findSensorById(sensorId);
-        SensorType sensorType = sensorTypeService.findSensorTypeByName(typeName);
+        SensorType sensorType = sensorTypeRepository.findByType(typeName)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "SensorType '" + typeName + "' not found"));
 
         sensor.getTypes().add(sensorType);
         return sensorRepo.save(sensor);
@@ -81,7 +94,9 @@ public class SensorService {
 
     public Sensor removeSensorType(Long sensorId, String typeName) {
         Sensor sensor = findSensorById(sensorId);
-        SensorType sensorType = sensorTypeService.findSensorTypeByName(typeName);
+        SensorType sensorType = sensorTypeRepository.findByType(typeName)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "SensorType '" + typeName + "' not found"));
 
         sensor.getTypes().remove(sensorType);
         return sensorRepo.save(sensor);
@@ -100,7 +115,9 @@ public class SensorService {
 
     private Set<SensorType> resolveAndValidateTypes(Set<SensorType> types) {
         return types.stream()
-                .map(type -> sensorTypeService.findSensorTypeByName(type.getType()))
+                .map(type -> sensorTypeRepository.findByType(type.getType())
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                "SensorType '" + type + "' not found")))
                 .collect(Collectors.toSet());
     }
 

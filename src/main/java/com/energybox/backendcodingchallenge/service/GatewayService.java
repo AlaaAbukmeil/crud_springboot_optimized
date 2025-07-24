@@ -1,10 +1,9 @@
 package com.energybox.backendcodingchallenge.service;
 
 import com.energybox.backendcodingchallenge.domain.Gateway;
-import com.energybox.backendcodingchallenge.domain.Sensor;
-import com.energybox.backendcodingchallenge.dto.GatewayMapper;
 import com.energybox.backendcodingchallenge.dto.request.CreateGatewayRequest;
 import com.energybox.backendcodingchallenge.repository.GatewayRepository;
+import com.energybox.backendcodingchallenge.repository.SensorTypeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,20 +16,22 @@ import java.util.List;
 @Transactional
 public class GatewayService {
     private final GatewayRepository repo;
-    private final SensorTypeService sensorTypeService;
-    private final GatewayMapper gatewayMapper;
+    private final SensorTypeRepository sensorTypeRepository;
 
     public List<Gateway> findAll() {
         return repo.findAll();
     }
 
     public Gateway create(CreateGatewayRequest request) {
-        Gateway gateway = gatewayMapper.fromCreateRequest(request);
+        Gateway gateway = new Gateway();
+        gateway.setName(request.getName());
         return repo.save(gateway);
     }
 
     public List<Gateway> findWithSensorType(String type) {
-        sensorTypeService.findSensorTypeByName(type);
+        sensorTypeRepository.findByType(type)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "SensorType '" + type + "' not found"));
         return repo.findDistinctBySensors_Types_Type(type);
     }
 

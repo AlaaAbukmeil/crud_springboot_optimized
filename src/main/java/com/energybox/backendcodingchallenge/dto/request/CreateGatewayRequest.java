@@ -10,4 +10,10 @@ public class CreateGatewayRequest {
     @NotBlank(message = "Gateway name is required")
     @Size(max = 100, message = "Gateway name must not exceed 100 characters")
     private String name;
+
+    public String getName() {
+        return name;
+    }
+
+
 }
