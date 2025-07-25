@@ -174,10 +174,10 @@ public class SensorService {
             s.setName("Sensor-" + i);
 
             // assign gateway 80% of the time
-            if (random.nextDouble() < 0.8) {
+//            if (random.nextDouble() < 0.8) {
                 Gateway pick = gateways.get(random.nextInt(gateways.size()));
                 s.setGateway(pick);
-            }
+//            }
 
             // Save the sensor first
             s = sensorRepo.save(s);

@@ -60,7 +60,7 @@ public class GatewayController {
             @ApiResponse(responseCode = "404", description = "Sensor type not found"),
             @ApiResponse(responseCode = "400", description = "Invalid sensor type parameter")
     })
-    @GetMapping("type/{typeName}")
+    @GetMapping("with-sensors/{typeName}")
     public ResponseEntity<List<GatewayResponse>> getBySensorType(
             @PathVariable String typeName
     ) {

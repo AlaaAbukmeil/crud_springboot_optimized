@@ -91,10 +91,11 @@ public class SensorController {
             @ApiResponse(responseCode = "204", description = "Sensor assigned to gateway successfully"),
             @ApiResponse(responseCode = "404", description = "Sensor or gateway not found")
     })
-    @PutMapping("/{sensorId}/gateway/{gatewayId}")
+    @PutMapping("/{sensorId}/assign")
     public ResponseEntity<Void> assignToGateway(
             @PathVariable Long sensorId,
-            @PathVariable Long gatewayId
+            @Parameter(description = "Gateway Id", example = "1")
+            @RequestParam(defaultValue = "1") Long gatewayId
     ) {
         sensorService.assignGateway(sensorId, gatewayId);
         return ResponseEntity.noContent().build();
@@ -223,7 +224,7 @@ public class SensorController {
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
-    @Operation(summary = "Get all sensor types)")
+    @Operation(summary = "Get all sensor types")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful."),
             @ApiResponse(responseCode = "404", description = "Sensor not found"),
