@@ -4,6 +4,7 @@ import com.energybox.backendcodingchallenge.domain.Sensor;
 import com.energybox.backendcodingchallenge.domain.SensorLastReading;
 import com.energybox.backendcodingchallenge.dto.SensorMapper;
 import com.energybox.backendcodingchallenge.dto.request.CreateSensorRequest;
+import com.energybox.backendcodingchallenge.dto.request.SensorLastReadingRequest;
 import com.energybox.backendcodingchallenge.dto.response.SensorLastReadingResponse;
 import com.energybox.backendcodingchallenge.dto.response.SensorResponse;
 import com.energybox.backendcodingchallenge.service.SensorLastReadingService;
@@ -185,5 +186,18 @@ public class SensorController {
         List<SensorLastReading> readings = sensorLastReadingService.findBySensorId(sensorId);
         List<SensorLastReadingResponse> result = sensorMapper.toResponseList(readings);
         return ResponseEntity.ok(result);
+    }
+
+    @Operation(summary = "Add a new reading")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Added a new reading"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "404", description = "Sensor or sensor type not found")
+    })
+    @PostMapping
+    public ResponseEntity<SensorLastReadingResponse> createSensor(@Valid @RequestBody SensorLastReadingRequest request) {
+        SensorLastReading sensorLastReading = sensorLastReadingService.createOrUpdateLastReading(request);
+        SensorLastReadingResponse res = sensorMapper.toResponse(sensorLastReading);
+        return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 }

@@ -193,10 +193,8 @@ public class SensorService {
             sensorRepo.save(s);
         }
 
-        // Force SQL execution
         sensorRepo.flush();
 
-        // Print verification
         sensorRepo.findAll().forEach(s -> {
             String assigned = s.getTypes().stream()
                     .map(SensorType::getType)
