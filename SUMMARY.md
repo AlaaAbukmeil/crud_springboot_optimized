@@ -1,4 +1,5 @@
 Script:
+source ~/.zshrc  # or source ~/.bash_profile
 docker compose down                         
 rm -rf ${HOME}/energybox/postgres
 docker compose up -d 

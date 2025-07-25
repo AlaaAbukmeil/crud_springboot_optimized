@@ -15,16 +15,16 @@ public class SensorResponse {
     private Long id;
     private String name;
     private Instant createdAt;
-    private GatewayInfo gateway;
+//    private GatewayInfo gateway;
     private List<String> types;
     private BigDecimal xCoordinate;
     private BigDecimal yCoordinate;
 
-    @Data
-    public static class GatewayInfo {
-        private Long id;
-        private String name;
-        private BigDecimal xCoordinate;
-        private BigDecimal yCoordinate;
-    }
+//    @Data
+//    public static class GatewayInfo {
+//        private Long id;
+//        private String name;
+//        private BigDecimal xCoordinate;
+//        private BigDecimal yCoordinate;
+//    }
 }

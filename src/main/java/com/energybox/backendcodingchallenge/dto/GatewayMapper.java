@@ -26,13 +26,13 @@ public class GatewayMapper {
         response.setXCoordinate(gateway.getXCoordinate());
         response.setYCoordinate(gateway.getYCoordinate());
 
-        // Map sensors
-        if (gateway.getSensors() != null) {
-            List<GatewayResponse.SensorInfo> sensors = gateway.getSensors().stream()
-                    .map(this::toSensorInfo)
-                    .collect(Collectors.toList());
-            response.setSensors(sensors);
-        }
+//        // Map sensors
+//        if (gateway.getSensors() != null) {
+//            List<GatewayResponse.SensorInfo> sensors = gateway.getSensors().stream()
+//                    .map(this::toSensorInfo)
+//                    .collect(Collectors.toList());
+//            response.setSensors(sensors);
+//        }
 
         return response;
     }
@@ -64,22 +64,22 @@ public class GatewayMapper {
     }
 
 
-    private GatewayResponse.SensorInfo toSensorInfo(Sensor sensor) {
-        GatewayResponse.SensorInfo info = new GatewayResponse.SensorInfo();
-        info.setId(sensor.getId());
-        info.setName(sensor.getName());
-        info.setXCoordinate(sensor.getXCoordinate());
-        info.setYCoordinate(sensor.getYCoordinate());
-
-        if (sensor.getTypes() != null) {
-            List<String> types = sensor.getTypes().stream()
-                    .map(SensorType::getType)
-                    .collect(Collectors.toList());
-            info.setTypes(types);
-        }
-
-        return info;
-    }
+//    private GatewayResponse.SensorInfo toSensorInfo(Sensor sensor) {
+//        GatewayResponse.SensorInfo info = new GatewayResponse.SensorInfo();
+//        info.setId(sensor.getId());
+//        info.setName(sensor.getName());
+//        info.setXCoordinate(sensor.getXCoordinate());
+//        info.setYCoordinate(sensor.getYCoordinate());
+//
+//        if (sensor.getTypes() != null) {
+//            List<String> types = sensor.getTypes().stream()
+//                    .map(SensorType::getType)
+//                    .collect(Collectors.toList());
+//            info.setTypes(types);
+//        }
+//
+//        return info;
+//    }
 
 
 

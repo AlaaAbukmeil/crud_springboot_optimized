@@ -26,6 +26,15 @@ public class SensorMapper {
         response.setXCoordinate(sensor.getXCoordinate());
         response.setYCoordinate(sensor.getYCoordinate());
 
+//        // Map gateway
+//        if (sensor.getGateway() != null) {
+//            SensorResponse.GatewayInfo gatewayInfo = new SensorResponse.GatewayInfo();
+//            gatewayInfo.setId(sensor.getGateway().getId());
+//            gatewayInfo.setName(sensor.getGateway().getName());
+//            gatewayInfo.setXCoordinate(sensor.getGateway().getXCoordinate());
+//            gatewayInfo.setYCoordinate(sensor.getGateway().getYCoordinate());
+//            response.setGateway(gatewayInfo);
+//        }
 
         // Map sensor types to string list
         if (sensor.getTypes() != null) {
