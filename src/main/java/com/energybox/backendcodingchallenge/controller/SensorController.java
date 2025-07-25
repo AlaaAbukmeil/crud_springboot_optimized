@@ -11,10 +11,15 @@ import com.energybox.backendcodingchallenge.service.SensorLastReadingService;
 import com.energybox.backendcodingchallenge.service.SensorService;
 import com.energybox.backendcodingchallenge.service.SensorTypeService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,11 +38,28 @@ public class SensorController {
     @Operation(summary = "Get all sensors")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved all sensors")
     @GetMapping
-    public ResponseEntity<List<SensorResponse>> getAllSensors() {
-        List<Sensor> sensors = sensorService.findAll();
-        List<SensorResponse> response = sensorMapper.toResponse(sensors);
+    public ResponseEntity<Page<SensorResponse>> getAllSensors(
+            @Parameter(description = "Page number (0-based)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size", example = "20")
+            @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Sort by field", example = "name")
+            @RequestParam(defaultValue = "id") String sortBy,
+            @Parameter(description = "Sort direction", example = "asc")
+            @RequestParam(defaultValue = "asc") String sortDir) {
+
+
+        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Page<Sensor> sensors = sensorService.findAll(pageable);
+        Page<SensorResponse> response = sensors.map(sensorMapper::toResponse);
         return ResponseEntity.ok(response);
     }
+
+
+
+
 
     @Operation(summary = "Get all sensors assigned to a certain gateway")
     @ApiResponses(value = {
@@ -178,7 +200,7 @@ public class SensorController {
 
     @Operation(summary = "Get last readings of a sensor for each type)")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Successful."),
+            @ApiResponse(responseCode = "200", description = "Successful."),
             @ApiResponse(responseCode = "404", description = "Sensor not found"),
     })
     @GetMapping("/readings/{sensorId}")
@@ -194,10 +216,23 @@ public class SensorController {
             @ApiResponse(responseCode = "400", description = "Invalid input data"),
             @ApiResponse(responseCode = "404", description = "Sensor or sensor type not found")
     })
-    @PostMapping
-    public ResponseEntity<SensorLastReadingResponse> createSensor(@Valid @RequestBody SensorLastReadingRequest request) {
+    @PostMapping("/readings")
+    public ResponseEntity<SensorLastReadingResponse> addAReading(@Valid @RequestBody SensorLastReadingRequest request) {
         SensorLastReading sensorLastReading = sensorLastReadingService.createOrUpdateLastReading(request);
         SensorLastReadingResponse res = sensorMapper.toResponse(sensorLastReading);
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
+
+    @Operation(summary = "Get all sensor types)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful."),
+            @ApiResponse(responseCode = "404", description = "Sensor not found"),
+    })
+    @GetMapping("/types")
+    public ResponseEntity<List<String>> getAllSensorTypes() {
+        List<String> readings = sensorTypeService.getAllSensorTypeNames();
+
+        return ResponseEntity.ok(readings);
+    }
+
 }

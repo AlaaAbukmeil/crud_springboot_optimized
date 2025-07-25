@@ -10,6 +10,8 @@ import com.energybox.backendcodingchallenge.repository.SensorTypeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -27,6 +29,9 @@ public class SensorService {
 
     public List<Sensor> findAll() {
         return sensorRepo.findAll();
+    }
+    public Page<Sensor> findAll(Pageable pageable) {
+        return sensorRepo.findAll(pageable);
     }
 
     public List<Sensor> findByGateway(Long gatewayId)

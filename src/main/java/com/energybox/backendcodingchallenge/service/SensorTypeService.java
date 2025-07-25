@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -46,6 +47,12 @@ public class SensorTypeService {
 
         return typeRepo.findByType(typeName)
                 .orElseThrow(() -> new EntityNotFoundException("Sensor Type with typename " + typeName + " not found"));
+    }
+    public List<String> getAllSensorTypeNames() {
+        return typeRepo.findAll()
+                .stream()
+                .map(SensorType::getType)
+                .collect(Collectors.toList());
     }
 
 }

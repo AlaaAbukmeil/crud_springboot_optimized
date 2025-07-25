@@ -8,5 +8,6 @@ import java.util.Optional;
 public interface SensorTypeRepository extends JpaRepository<SensorType, Long> {
 //    find if there is a type
  Optional<SensorType> findByType(String type);
+
 }
 
