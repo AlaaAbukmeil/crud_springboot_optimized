@@ -101,17 +101,17 @@ public class SensorController {
 
     @Operation(summary = "Assign a sensor to a gateway")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Sensor assigned to gateway successfully"),
+            @ApiResponse(responseCode = "200", description = "Sensor assigned to gateway successfully"),
             @ApiResponse(responseCode = "404", description = "Sensor or gateway not found")
     })
     @PutMapping("/{sensorId}/assign")
-    public ResponseEntity<Void> assignToGateway(
+    public ResponseEntity<String> assignToGateway(
             @PathVariable Long sensorId,
             @Parameter(description = "Gateway Id", example = "1")
             @RequestParam(defaultValue = "1") Long gatewayId
     ) {
         sensorService.assignGateway(sensorId, gatewayId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Successful");
     }
 
     @Operation(summary = "Get all sensors with a certain type")

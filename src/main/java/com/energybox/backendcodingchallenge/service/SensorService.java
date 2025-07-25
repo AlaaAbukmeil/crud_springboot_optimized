@@ -16,6 +16,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -124,17 +125,10 @@ public class SensorService {
         Sensor sensor = findSensorById(id);
         sensorRepo.deleteById(id);
     }
-    public List<Sensor> findUnassigned() {
-        return sensorRepo.findByGatewayIsNull();
-    }
 
 
-    /**
-     * Find unassigned sensors with suggested closest gateways
-     * @return List of unassigned sensors with gateway suggestions
-     */
     public List<SensorResponseWithSuggestion> findUnassignedWithSuggestedGateways() {
-        List<Sensor> unassignedSensors = sensorRepo.findByGatewayIsNull();
+        List<Sensor> unassignedSensors = sensorRepo.findByGatewayIsNull(Sort.by("id"));
         List<Gateway> availableGateways = gatewayRepo.findAll();
 
         return unassignedSensors.stream()
@@ -142,12 +136,7 @@ public class SensorService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Create sensor response with suggested gateway
-     * @param sensor The unassigned sensor
-     * @param availableGateways List of available gateways
-     * @return Sensor response with suggestion
-     */
+
     private SensorResponseWithSuggestion createSensorWithSuggestion(
             Sensor sensor, List<Gateway> availableGateways) {
 
@@ -182,12 +171,7 @@ public class SensorService {
                 .build();
     }
 
-    /**
-     * Find the closest gateway to a sensor
-     * @param sensor The sensor to find closest gateway for
-     * @param availableGateways List of available gateways
-     * @return Closest gateway or null if none available
-     */
+
     private Gateway findClosestGateway(Sensor sensor, List<Gateway> availableGateways) {
         if (availableGateways.isEmpty() ||
                 sensor.getXCoordinate() == null ||
@@ -220,14 +204,6 @@ public class SensorService {
     //helper functions
 
 
-    private Set<SensorType> resolveAndValidateTypes(Set<SensorType> types) {
-        return types.stream()
-                .map(type -> sensorTypeRepository.findByType(type.getType())
-                        .orElseThrow(() -> new EntityNotFoundException(
-                                "SensorType '" + type + "' not found")))
-                .collect(Collectors.toSet());
-    }
-
     private Sensor findSensorById(Long id) {
         return sensorRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Sensor with id " + id + " not found"));
@@ -244,17 +220,6 @@ public class SensorService {
     );
 
 
-
-    private void generateSensorTypes() {
-        TYPE_NAMES.forEach(name -> {
-            sensorTypeRepository.findByType(name)
-                    .orElseGet(() -> {
-                        SensorType t = new SensorType();
-                        t.setType(name);
-                        return sensorTypeRepository.save(t);
-                    });
-        });
-    }
 
     public void generateGatewaysAndSensors() {
 
