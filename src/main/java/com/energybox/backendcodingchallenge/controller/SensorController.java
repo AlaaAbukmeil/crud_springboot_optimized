@@ -1,10 +1,14 @@
 package com.energybox.backendcodingchallenge.controller;
 
 import com.energybox.backendcodingchallenge.domain.Sensor;
+import com.energybox.backendcodingchallenge.domain.SensorLastReading;
 import com.energybox.backendcodingchallenge.dto.SensorMapper;
 import com.energybox.backendcodingchallenge.dto.request.CreateSensorRequest;
+import com.energybox.backendcodingchallenge.dto.response.SensorLastReadingResponse;
 import com.energybox.backendcodingchallenge.dto.response.SensorResponse;
+import com.energybox.backendcodingchallenge.service.SensorLastReadingService;
 import com.energybox.backendcodingchallenge.service.SensorService;
+import com.energybox.backendcodingchallenge.service.SensorTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -22,6 +26,8 @@ import java.util.List;
 public class SensorController {
     private final SensorService sensorService;
     private final SensorMapper sensorMapper;
+    private final SensorTypeService sensorTypeService;
+    private final SensorLastReadingService sensorLastReadingService;
 
     @Operation(summary = "Get all sensors")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved all sensors")
@@ -107,7 +113,6 @@ public class SensorController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Sensor type added successfully"),
             @ApiResponse(responseCode = "404", description = "Sensor or sensor type not found"),
-            @ApiResponse(responseCode = "409", description = "Sensor type already assigned to sensor")
     })
     @PostMapping("/{sensorId}/types/{typeName}")
     public ResponseEntity<SensorResponse> addType(
@@ -119,11 +124,12 @@ public class SensorController {
         return ResponseEntity.ok(response);
     }
 
+
+
     @Operation(summary = "Remove a sensor type from a sensor")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Sensor type removed successfully"),
             @ApiResponse(responseCode = "404", description = "Sensor or sensor type not found"),
-            @ApiResponse(responseCode = "400", description = "Cannot remove the last sensor type")
     })
     @DeleteMapping("/{sensorId}/types/{typeName}")
     public ResponseEntity<Void> removeType(
@@ -132,5 +138,52 @@ public class SensorController {
     ) {
         sensorService.removeSensorType(sensorId, typeName);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Add a new sensor type")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Sensor created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+    })
+    @PostMapping("/types/{typeName}")
+    public ResponseEntity<String> createSensorType(@PathVariable String typeName) {
+        sensorTypeService.create(typeName);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Created");
+    }
+
+    @Operation(summary = "Remove a sensor type")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Sensor type removed successfully"),
+            @ApiResponse(responseCode = "404", description = "Sensor type not found"),
+    })
+    @DeleteMapping("/types/{typeName}")
+    public ResponseEntity<Void> removeSensorType(
+            @PathVariable String typeName
+    ) {
+        sensorTypeService.delete(typeName);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Populate with random data")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Populated with random data"),
+            @ApiResponse(responseCode = "404", description = "Unexpected error")
+    })
+    @PostMapping("/random")
+    public ResponseEntity<String> populateWithRandomData() {
+        sensorService.generateGatewaysAndSensors();
+        return ResponseEntity.ok("Populated");
+    }
+
+    @Operation(summary = "Get last readings of a sensor for each type)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Successful."),
+            @ApiResponse(responseCode = "404", description = "Sensor not found"),
+    })
+    @GetMapping("/readings/{sensorId}")
+    public ResponseEntity<List<SensorLastReadingResponse>> getLastReadings(@PathVariable Long sensorId) {
+        List<SensorLastReading> readings = sensorLastReadingService.findBySensorId(sensorId);
+        List<SensorLastReadingResponse> result = sensorMapper.toResponseList(readings);
+        return ResponseEntity.ok(result);
     }
 }

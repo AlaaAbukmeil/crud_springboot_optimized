@@ -20,7 +20,7 @@ CREATE TABLE devices.sensor_types (
 );
 
 -- if sensor id gets deleted, remove all rows with sensor id. same with type but it wont happen
-CREATE TABLE devices.sensorId_with_typeId (
+CREATE TABLE devices.sensor_id_with_type_id (
   sensor_id      INTEGER REFERENCES devices.sensors(id) ON DELETE CASCADE,
   sensor_type_id INTEGER REFERENCES devices.sensor_types(id) ON DELETE CASCADE,
   PRIMARY KEY (sensor_id, sensor_type_id)
@@ -35,7 +35,8 @@ CREATE TABLE devices.sensor_last_readings (
   reading_value   NUMERIC NOT NULL,
   UNIQUE(sensor_id, sensor_type_id)
 );
-
+CREATE INDEX idx_sensor_last_readings_sensor_reading_time
+ON devices.sensor_last_readings USING btree (sensor_id, reading_time);
 
 -- add sensor types
 INSERT INTO devices.sensor_types(type) VALUES

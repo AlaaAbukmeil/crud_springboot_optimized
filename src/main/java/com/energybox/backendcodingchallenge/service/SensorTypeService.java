@@ -21,13 +21,15 @@ public class SensorTypeService {
     private final SensorTypeRepository typeRepo;
     private final SensorRepository sensorRepo;
 
-    public SensorType create(SensorType sensorType) {
+    public SensorType create(String typeName) {
+        SensorType sensorType = new SensorType();
+        sensorType.setType(typeName);
         return typeRepo.save(sensorType);
     }
 
-    public void delete(Long typeId) {
-        SensorType toDelete = typeRepo.findById(typeId)
-                .orElseThrow(() -> new EntityNotFoundException("Sensor Type with id " + typeId + " not found"));
+    public void delete(String typeName) {
+        SensorType toDelete = typeRepo.findByType(typeName)
+                .orElseThrow(() -> new EntityNotFoundException("Sensor Type with typeName " + typeName + " not found"));
 
         List<Sensor> sensors = sensorRepo.findByTypes_Type(toDelete.getType());
 

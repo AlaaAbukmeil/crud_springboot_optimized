@@ -35,12 +35,12 @@ public class Sensor {
     @ToString.Exclude
     private Gateway gateway;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @JoinTable(
             schema = "devices",
-            name = "sensorId_with_typeId",
+            name = "sensor_id_with_type_id",
             joinColumns = @JoinColumn(name = "sensor_id"),
             inverseJoinColumns = @JoinColumn(name = "sensor_type_id")
     )

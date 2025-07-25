@@ -12,9 +12,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Transactional
@@ -125,5 +125,85 @@ public class SensorService {
         return sensorRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Sensor with id " + id + " not found"));
 
+    }
+
+
+
+
+    private final Random random = new Random();
+
+    private static final List<String> TYPE_NAMES = List.of(
+            "temperature", "humidity", "electricity", "pressure", "sound"
+    );
+
+
+
+    private void generateSensorTypes() {
+        TYPE_NAMES.forEach(name -> {
+            sensorTypeRepository.findByType(name)
+                    .orElseGet(() -> {
+                        SensorType t = new SensorType();
+                        t.setType(name);
+                        return sensorTypeRepository.save(t);
+                    });
+        });
+    }
+
+    public void generateGatewaysAndSensors() {
+
+        // 1) Get all gateways
+//        List<Gateway> gateways = gatewayRepo.findAll();
+        List<Gateway> gateways = IntStream.rangeClosed(1, 5)
+                .mapToObj(i -> {
+                    Gateway g = new Gateway();
+                    g.setName("GW-" + UUID.randomUUID().toString().substring(0, 8));
+                    return gatewayRepo.save(g);
+                })
+                .toList();
+        // 2) Fetch types once
+        List<SensorType> types = sensorTypeRepository.findAll();
+
+        // 3) Create and save sensors one by one
+        for (int i = 1; i <= 1000; i++) {
+            Sensor s = new Sensor();
+            s.setName("Sensor-" + i);
+
+            // assign gateway 80% of the time
+            if (random.nextDouble() < 0.8) {
+                Gateway pick = gateways.get(random.nextInt(gateways.size()));
+                s.setGateway(pick);
+            }
+
+            // Save the sensor first
+            s = sensorRepo.save(s);
+
+            // Now add types to the persisted sensor
+            Collections.shuffle(types, random);
+            int count = 1 + random.nextInt(3);
+
+            for (int j = 0; j < count; j++) {
+                SensorType sensorType = types.get(j);
+
+                // Add to both sides of the relationship
+                s.getTypes().add(sensorType);
+                sensorType.getSensors().add(s);
+            }
+
+            // Save the sensor (owning side of the relationship)
+            sensorRepo.save(s);
+        }
+
+        // Force SQL execution
+        sensorRepo.flush();
+
+        // Print verification
+        sensorRepo.findAll().forEach(s -> {
+            String assigned = s.getTypes().stream()
+                    .map(SensorType::getType)
+                    .collect(Collectors.joining(", "));
+            System.out.println(
+                    "Sensor " + s.getName() + " has types: " + assigned
+            );
+        });
     }
 }

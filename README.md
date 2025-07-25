@@ -48,6 +48,18 @@ Try to complete the user stories below as best you can, and feel free to add in 
 - As a user, I'd like to assign a sensor to a given gateway.
 - As a user, I'd like to query for sensors of a certain type.
 - As a user, I'd like to query for a gateway that has electrical sensors assigned to it.
+- Delete gateway
+- Delete sensor
+- Show unassigned sensors
+- Add sensor type to a sensor
+- Remove sensor type from a sensor
+
+- Add sensor type
+- Remove sensor type
+
+- last reading of a sensor regardless of sensor type
+
+- add a sensor reading update
 
 **Bonus:**
 - Sensors can have a `last_reading` for each sensor type. The `last_reading` consists of a timestamp and a value.
