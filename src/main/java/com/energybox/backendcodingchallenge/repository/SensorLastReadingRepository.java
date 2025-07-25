@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface SensorLastReadingRepository extends JpaRepository<SensorLastReading, Long> {
     List<SensorLastReading> findBySensorId(Long sensorId);
-    Optional<SensorLastReading> findBySensorIdAndSensorType_Type(@Param("sensorId") Long sensorId,
-                                                                 @Param("sensorType") String sensorType);
+
+    Optional<SensorLastReading> findBySensorIdAndSensorTypeId(Long sensorId, Long sensorTypeId);
+
 }

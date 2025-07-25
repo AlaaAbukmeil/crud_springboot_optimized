@@ -11,6 +11,7 @@ import com.energybox.backendcodingchallenge.repository.SensorTypeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -25,52 +26,59 @@ public class SensorLastReadingService {
     private final SensorLastReadingRepository repo;
     private final SensorRepository sensorRepository;
     private final SensorTypeRepository sensorTypeRepository;
-    public SensorLastReading create(SensorLastReading sensorLastReading) {
+    public SensorLastReading create(SensorLastReadingRequest request) {
+        Sensor sensor = sensorRepository.findById(request.getSensorId())
+                .orElseThrow(() -> new EntityNotFoundException("Sensor not found with id: " + request.getSensorId()));
+
+        SensorType sensorType = sensorTypeRepository.findByType(request.getSensorType())
+                .orElseThrow(() -> new EntityNotFoundException("Sensor type not found: " + request.getSensorType()));
+
+        if (!sensor.getTypes().contains(sensorType)) {
+            throw new IllegalArgumentException("Sensor " + request.getSensorId() + " does not support type: " + request.getSensorType());
+        }
+
+        Optional<SensorLastReading> existingReading = repo.findBySensorIdAndSensorTypeId(
+                request.getSensorId(),
+                sensorType.getId()
+        );
+
+        SensorLastReading sensorLastReading;
+
+        if (existingReading.isPresent()) {
+            // Update existing reading
+            sensorLastReading = existingReading.get();
+            sensorLastReading.setReadingValue(request.getReadingValue());
+
+            // Update reading time if provided, otherwise keep existing or set current time
+            if (request.getReadingTime() != null) {
+                sensorLastReading.setReadingTime(request.getReadingTime());
+            } else {
+                sensorLastReading.setReadingTime(Instant.now());
+            }
+        } else {
+            sensorLastReading = new SensorLastReading();
+            sensorLastReading.setSensor(sensor);
+            sensorLastReading.setSensorType(sensorType);
+            sensorLastReading.setReadingValue(request.getReadingValue());
+
+            if (request.getReadingTime() != null) {
+                sensorLastReading.setReadingTime(request.getReadingTime());
+            }
+        }
+
         return repo.save(sensorLastReading);
     }
 
     public List<SensorLastReading> findBySensorId(Long sensorId){
-        Optional<Sensor> sensor = sensorRepository.findById(sensorId);
         List<SensorLastReading> result = repo.findBySensorId(sensorId);
         return result;
     }
-
-    public SensorLastReading createOrUpdateLastReading(SensorLastReadingRequest request) {
-        Sensor sensor = sensorRepository.findById(request.getSensorId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Sensor with id " + request.getSensorId() + " not found"));
-
-        SensorType sensorType = sensorTypeRepository.findByType(request.getSensorType())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "SensorType '" + request.getSensorType() + "' not found"));
-
-        if (!sensor.getTypes().contains(sensorType)) {
-            throw new IllegalArgumentException(
-                    "Sensor " + sensor.getName() + " does not support type " + request.getSensorType());
-        }
-
-        SensorLastReading existingReading = repo
-                .findBySensorIdAndSensorType_Type(request.getSensorId(), request.getSensorType())
-                .orElse(null);
-
-        SensorLastReading reading;
-        if (existingReading != null) {
-            reading = existingReading;
-            reading.setReadingValue(request.getReadingValue());
-            reading.setReadingTime(request.getReadingTime() != null ?
-                    request.getReadingTime() : Instant.now());
-        } else {
-            reading = new SensorLastReading();
-            reading.setSensor(sensor);
-            reading.setSensorType(sensorType);
-            reading.setReadingValue(request.getReadingValue());
-            reading.setReadingTime(request.getReadingTime() != null ?
-                    request.getReadingTime() : Instant.now());
-        }
-
-        SensorLastReading savedReading = repo.save(reading);
-        return savedReading;
+    public List<SensorLastReading> findAll(){
+        List<SensorLastReading> result = repo.findAll(Sort.by("sensor_id"));
+        return result;
     }
+
+
 
 
 }

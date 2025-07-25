@@ -35,8 +35,8 @@ CREATE TABLE devices.sensor_last_readings (
   reading_value   NUMERIC NOT NULL,
   UNIQUE(sensor_id, sensor_type_id)
 );
-CREATE INDEX idx_sensor_last_readings_sensor_reading_time
-ON devices.sensor_last_readings USING btree (sensor_id, reading_time);
+CREATE INDEX idx_sensor_last_readings_sensor_id
+ON devices.sensor_last_readings (sensor_id);
 
 -- add sensor types
 INSERT INTO devices.sensor_types(type) VALUES

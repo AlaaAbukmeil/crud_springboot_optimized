@@ -2,10 +2,12 @@ package com.energybox.backendcodingchallenge.service;
 
 import com.energybox.backendcodingchallenge.domain.Gateway;
 import com.energybox.backendcodingchallenge.domain.Sensor;
+import com.energybox.backendcodingchallenge.domain.SensorLastReading;
 import com.energybox.backendcodingchallenge.domain.SensorType;
 import com.energybox.backendcodingchallenge.dto.request.CreateSensorRequest;
 import com.energybox.backendcodingchallenge.dto.response.SensorResponseWithSuggestion;
 import com.energybox.backendcodingchallenge.repository.GatewayRepository;
+import com.energybox.backendcodingchallenge.repository.SensorLastReadingRepository;
 import com.energybox.backendcodingchallenge.repository.SensorRepository;
 import com.energybox.backendcodingchallenge.repository.SensorTypeRepository;
 import com.energybox.backendcodingchallenge.util.DistanceUtil;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -29,6 +32,7 @@ public class SensorService {
     private final SensorRepository sensorRepo;
     private final GatewayRepository gatewayRepo;
     private final SensorTypeRepository sensorTypeRepository;
+    private final SensorLastReadingRepository sensorLastReadingRepository;
 
 
     public List<Sensor> findAll() {
@@ -36,6 +40,10 @@ public class SensorService {
     }
     public Page<Sensor> findAll(Pageable pageable) {
         return sensorRepo.findAll(pageable);
+    }
+    public Sensor findById(Long id){
+        return sensorRepo.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("Sensor not found with id: " + id));
     }
 
     public List<Sensor> findByGateway(Long gatewayId)
@@ -250,14 +258,11 @@ public class SensorService {
 
     public void generateGatewaysAndSensors() {
 
-        // 1) Create gateways with coordinates
         List<Gateway> gateways = IntStream.rangeClosed(1, 5)
                 .mapToObj(i -> {
                     Gateway g = new Gateway();
                     g.setName("GW-" + UUID.randomUUID().toString().substring(0, 8));
 
-                    // Generate random coordinates for gateways
-                    // Using a coordinate system from 0 to 1000 for both x and y
                     g.setXCoordinate(BigDecimal.valueOf(random.nextDouble() * 1000)
                             .setScale(6, RoundingMode.HALF_UP));
                     g.setYCoordinate(BigDecimal.valueOf(random.nextDouble() * 1000)
@@ -267,49 +272,41 @@ public class SensorService {
                 })
                 .toList();
 
-        // 2) Fetch types once
         List<SensorType> types = sensorTypeRepository.findAll();
 
-        // 3) Create and save sensors one by one
+        List<Sensor> allSensors = new ArrayList<>();
         for (int i = 1; i <= 1000; i++) {
             Sensor s = new Sensor();
             s.setName("Sensor-" + i);
 
-            // Generate random coordinates for sensors
-            // Using the same coordinate system (0-1000) as gateways
             s.setXCoordinate(BigDecimal.valueOf(random.nextDouble() * 1000)
                     .setScale(6, RoundingMode.HALF_UP));
             s.setYCoordinate(BigDecimal.valueOf(random.nextDouble() * 1000)
                     .setScale(6, RoundingMode.HALF_UP));
 
-            // Assign gateway 80% of the time
-//            if (random.nextDouble() < 0.8) {
-                Gateway pick = gateways.get(random.nextInt(gateways.size()));
-                s.setGateway(pick);
-//            }
+            Gateway pick = gateways.get(random.nextInt(gateways.size()));
+            s.setGateway(pick);
 
-            // Save the sensor first
             s = sensorRepo.save(s);
 
-            // Now add types to the persisted sensor
             Collections.shuffle(types, random);
             int count = 1 + random.nextInt(3);
 
             for (int j = 0; j < count; j++) {
                 SensorType sensorType = types.get(j);
 
-                // Add to both sides of the relationship
                 s.getTypes().add(sensorType);
                 sensorType.getSensors().add(s);
             }
 
-            // Save the sensor (owning side of the relationship)
-            sensorRepo.save(s);
+            s = sensorRepo.save(s);
+            allSensors.add(s);
         }
 
         sensorRepo.flush();
 
-        // Enhanced logging to show coordinates and gateway assignments
+        generateSensorLastReadings(allSensors, types);
+
         sensorRepo.findAll().forEach(s -> {
             String assigned = s.getTypes().stream()
                     .map(SensorType::getType)
@@ -327,5 +324,65 @@ public class SensorService {
                             gatewayInfo
             );
         });
+    }
+
+    private void generateSensorLastReadings(List<Sensor> sensors, List<SensorType> types) {
+        List<SensorLastReading> readings = new ArrayList<>();
+        Set<String> processedCombinations = new HashSet<>();
+
+        // First, get all existing readings to update them
+        List<SensorLastReading> existingReadings = sensorLastReadingRepository.findAll();
+        Map<String, SensorLastReading> existingReadingsMap = existingReadings.stream()
+                .collect(Collectors.toMap(
+                        reading -> reading.getSensor().getId() + "_" + reading.getSensorType().getId(),
+                        reading -> reading
+                ));
+
+        int updatesCount = 0;
+        int insertsCount = 0;
+
+        for (int i = 0; i < 1000; i++) {
+            Sensor randomSensor = sensors.get(random.nextInt(sensors.size()));
+            List<SensorType> sensorTypes = new ArrayList<>(randomSensor.getTypes());
+
+            if (!sensorTypes.isEmpty()) {
+                SensorType randomType = sensorTypes.get(random.nextInt(sensorTypes.size()));
+                String combinationKey = randomSensor.getId() + "_" + randomType.getId();
+
+                // Skip if we've already processed this combination in this batch
+                if (processedCombinations.contains(combinationKey)) {
+                    continue;
+                }
+                processedCombinations.add(combinationKey);
+
+                // Check if this combination already exists in database
+                SensorLastReading reading = existingReadingsMap.get(combinationKey);
+
+                if (reading != null) {
+                    // Update existing reading
+                    reading.setReadingValue(BigDecimal.valueOf(random.nextDouble() * 100)
+                            .setScale(6, RoundingMode.HALF_UP));
+                    reading.setReadingTime(Instant.now()); // Update timestamp
+                    updatesCount++;
+                } else {
+                    // Create new reading
+                    reading = new SensorLastReading();
+                    reading.setSensor(randomSensor);
+                    reading.setSensorType(randomType);
+                    reading.setReadingValue(BigDecimal.valueOf(random.nextDouble() * 100)
+                            .setScale(6, RoundingMode.HALF_UP));
+                    // readingTime will be set by @CreationTimestamp
+                    insertsCount++;
+                }
+
+                readings.add(reading);
+            }
+        }
+
+        sensorLastReadingRepository.saveAll(readings);
+        sensorLastReadingRepository.flush();
+
+        System.out.println("Generated " + readings.size() + " sensor last readings (" +
+                updatesCount + " updates, " + insertsCount + " inserts)");
     }
 }

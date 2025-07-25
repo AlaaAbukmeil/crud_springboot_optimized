@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/sensors")
@@ -58,7 +59,18 @@ public class SensorController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Get sensor by Id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved sensor"),
+            @ApiResponse(responseCode = "404", description = "sensor not found")
+    })
+    @GetMapping("/{sensorId}")
+    public ResponseEntity<SensorResponse> getBySensorId(@PathVariable Long sensorId) {
+        Sensor sensor = sensorService.findById(sensorId);
 
+        SensorResponse response = sensorMapper.toResponse(sensor);
+        return ResponseEntity.ok(response);
+    }
 
 
 
@@ -202,14 +214,25 @@ public class SensorController {
         return ResponseEntity.ok("Populated");
     }
 
-    @Operation(summary = "Get last readings of a sensor for each type)")
+    @Operation(summary = "Get last readings of a sensor for each type")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful."),
             @ApiResponse(responseCode = "404", description = "Sensor not found"),
     })
     @GetMapping("/readings/{sensorId}")
-    public ResponseEntity<List<SensorLastReadingResponse>> getLastReadings(@PathVariable Long sensorId) {
+    public ResponseEntity<List<SensorLastReadingResponse>> getLastReadingsForSensors(@PathVariable Long sensorId) {
         List<SensorLastReading> readings = sensorLastReadingService.findBySensorId(sensorId);
+        List<SensorLastReadingResponse> result = sensorMapper.toResponseList(readings);
+        return ResponseEntity.ok(result);
+    }
+    @Operation(summary = "Get last readings for all sensors")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful."),
+            @ApiResponse(responseCode = "404", description = "Sensor not found"),
+    })
+    @GetMapping("/readings")
+    public ResponseEntity<List<SensorLastReadingResponse>> getLastReadings() {
+        List<SensorLastReading> readings = sensorLastReadingService.findAll();
         List<SensorLastReadingResponse> result = sensorMapper.toResponseList(readings);
         return ResponseEntity.ok(result);
     }
@@ -220,10 +243,13 @@ public class SensorController {
             @ApiResponse(responseCode = "400", description = "Invalid input data"),
             @ApiResponse(responseCode = "404", description = "Sensor or sensor type not found")
     })
-    @PostMapping("/readings")
-    public ResponseEntity<SensorLastReadingResponse> addAReading(@Valid @RequestBody SensorLastReadingRequest request) {
-        SensorLastReading sensorLastReading = sensorLastReadingService.createOrUpdateLastReading(request);
+    @PostMapping("/readings/sensor/{sensorId}")
+    public ResponseEntity<SensorLastReadingResponse> addAReading(@Valid @RequestBody SensorLastReadingRequest sensorLastReadingRequest) {
+        SensorLastReading sensorLastReading = sensorLastReadingService.create(sensorLastReadingRequest);
         SensorLastReadingResponse res = sensorMapper.toResponse(sensorLastReading);
+
+
+
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 

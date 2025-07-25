@@ -1,5 +1,6 @@
 package com.energybox.backendcodingchallenge.dto.response;
 
+import com.energybox.backendcodingchallenge.domain.SensorLastReading;
 import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -16,11 +17,13 @@ public class SensorLastReadingResponse {
     private String sensorType;
     private Instant readingTime;
     private BigDecimal readingValue;
+    private Long sensorId;
 
-    public SensorLastReadingResponse(com.energybox.backendcodingchallenge.domain.SensorLastReading entity) {
+    public SensorLastReadingResponse(SensorLastReading entity) {
         this.sensorName = entity.getSensor().getName();
         this.sensorType = entity.getSensorType().getType();
         this.readingTime = entity.getReadingTime();
         this.readingValue = entity.getReadingValue();
+        this.sensorId = entity.getSensor().getId();
     }
 }

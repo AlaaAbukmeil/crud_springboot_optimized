@@ -87,7 +87,8 @@ public class SensorMapper {
                 entity.getSensor().getName(),
                 entity.getSensorType().getType(),
                 entity.getReadingTime(),
-                entity.getReadingValue()
+                entity.getReadingValue(),
+                entity.getSensor().getId()
         );
     }
 
