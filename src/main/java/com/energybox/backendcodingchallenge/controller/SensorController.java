@@ -7,6 +7,7 @@ import com.energybox.backendcodingchallenge.dto.request.CreateSensorRequest;
 import com.energybox.backendcodingchallenge.dto.request.SensorLastReadingRequest;
 import com.energybox.backendcodingchallenge.dto.response.SensorLastReadingResponse;
 import com.energybox.backendcodingchallenge.dto.response.SensorResponse;
+import com.energybox.backendcodingchallenge.dto.response.SensorResponseWithSuggestion;
 import com.energybox.backendcodingchallenge.service.SensorLastReadingService;
 import com.energybox.backendcodingchallenge.service.SensorService;
 import com.energybox.backendcodingchallenge.service.SensorTypeService;
@@ -124,14 +125,16 @@ public class SensorController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Get all unassigned sensors (no gateway)")
-    @ApiResponse(responseCode = "200", description = "Successfully retrieved unassigned sensors")
+    @Operation(summary = "Get all unassigned sensors with suggested closest gateways")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved unassigned sensors with gateway suggestions")
     @GetMapping("/unassigned")
-    public ResponseEntity<List<SensorResponse>> getUnassigned() {
-        List<Sensor> sensors = sensorService.findUnassigned();
-        List<SensorResponse> response = sensorMapper.toResponse(sensors);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<List<SensorResponseWithSuggestion>> getUnassigned() {
+        List<SensorResponseWithSuggestion> sensorsWithSuggestions =
+                sensorService.findUnassignedWithSuggestedGateways();
+        return ResponseEntity.ok(sensorsWithSuggestions);
     }
+
+
 
     @Operation(summary = "Add a sensor type to a sensor")
     @ApiResponses(value = {

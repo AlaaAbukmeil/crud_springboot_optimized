@@ -25,6 +25,8 @@ public class GatewayService {
     public Gateway create(CreateGatewayRequest request) {
         Gateway gateway = new Gateway();
         gateway.setName(request.getName());
+        gateway.setXCoordinate(request.getXCoordinate());
+        gateway.setYCoordinate(request.getYCoordinate());
         return repo.save(gateway);
     }
 

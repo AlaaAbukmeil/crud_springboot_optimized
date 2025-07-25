@@ -23,12 +23,16 @@ public class SensorMapper {
         response.setId(sensor.getId());
         response.setName(sensor.getName());
         response.setCreatedAt(sensor.getCreatedAt());
+        response.setXCoordinate(sensor.getXCoordinate());
+        response.setYCoordinate(sensor.getYCoordinate());
 
         // Map gateway
         if (sensor.getGateway() != null) {
             SensorResponse.GatewayInfo gatewayInfo = new SensorResponse.GatewayInfo();
             gatewayInfo.setId(sensor.getGateway().getId());
             gatewayInfo.setName(sensor.getGateway().getName());
+            gatewayInfo.setXCoordinate(sensor.getGateway().getXCoordinate());
+            gatewayInfo.setYCoordinate(sensor.getGateway().getYCoordinate());
             response.setGateway(gatewayInfo);
         }
 

@@ -45,3 +45,15 @@ INSERT INTO devices.sensor_types(type) VALUES
   ('electricity'),
   ('pressure'),
   ('sound');
+
+
+ALTER TABLE devices.gateways
+ADD COLUMN x_coordinate DECIMAL(10, 6),
+ADD COLUMN y_coordinate DECIMAL(10, 6);
+
+ALTER TABLE devices.sensors
+ADD COLUMN x_coordinate DECIMAL(10, 6),
+ADD COLUMN y_coordinate DECIMAL(10, 6);
+
+CREATE INDEX idx_gateways_coordinates ON devices.gateways (x_coordinate, y_coordinate);
+CREATE INDEX idx_sensors_coordinates ON devices.sensors (x_coordinate, y_coordinate);

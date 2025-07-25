@@ -1,12 +1,10 @@
 package com.energybox.backendcodingchallenge.dto.request;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -21,6 +19,19 @@ public class CreateSensorRequest {
 
     @Valid
     private GatewayReference gateway;
+
+    @NotNull(message = "X coordinate is required")
+    @DecimalMin(value = "-9999.999999", message = "X coordinate must be between -9999.999999 and 9999.999999")
+    @DecimalMax(value = "9999.999999", message = "X coordinate must be between -9999.999999 and 9999.999999")
+    @Digits(integer = 4, fraction = 6, message = "X coordinate must have at most 4 integer digits and 6 decimal places")
+    private BigDecimal xCoordinate;
+
+    @NotNull(message = "Y coordinate is required")
+    @DecimalMin(value = "-9999.999999", message = "Y coordinate must be between -9999.999999 and 9999.999999")
+    @DecimalMax(value = "9999.999999", message = "Y coordinate must be between -9999.999999 and 9999.999999")
+    @Digits(integer = 4, fraction = 6, message = "Y coordinate must have at most 4 integer digits and 6 decimal places")
+    private BigDecimal yCoordinate;
+
 
     @Data
     public static class GatewayReference {

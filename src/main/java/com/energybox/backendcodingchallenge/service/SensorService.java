@@ -4,9 +4,11 @@ import com.energybox.backendcodingchallenge.domain.Gateway;
 import com.energybox.backendcodingchallenge.domain.Sensor;
 import com.energybox.backendcodingchallenge.domain.SensorType;
 import com.energybox.backendcodingchallenge.dto.request.CreateSensorRequest;
+import com.energybox.backendcodingchallenge.dto.response.SensorResponseWithSuggestion;
 import com.energybox.backendcodingchallenge.repository.GatewayRepository;
 import com.energybox.backendcodingchallenge.repository.SensorRepository;
 import com.energybox.backendcodingchallenge.repository.SensorTypeRepository;
+import com.energybox.backendcodingchallenge.util.DistanceUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -57,7 +61,8 @@ public class SensorService {
         // Convert DTO to entity
         Sensor sensor = new Sensor();
         sensor.setName(request.getName());
-
+        sensor.setXCoordinate(request.getXCoordinate());
+        sensor.setYCoordinate(request.getYCoordinate());
         // Set gateway if provided
         if (request.getGateway() != null) {
             Gateway gateway = gatewayRepo.findById(request.getGateway().getId())
@@ -115,6 +120,95 @@ public class SensorService {
         return sensorRepo.findByGatewayIsNull();
     }
 
+
+    /**
+     * Find unassigned sensors with suggested closest gateways
+     * @return List of unassigned sensors with gateway suggestions
+     */
+    public List<SensorResponseWithSuggestion> findUnassignedWithSuggestedGateways() {
+        List<Sensor> unassignedSensors = sensorRepo.findByGatewayIsNull();
+        List<Gateway> availableGateways = gatewayRepo.findAll();
+
+        return unassignedSensors.stream()
+                .map(sensor -> createSensorWithSuggestion(sensor, availableGateways))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Create sensor response with suggested gateway
+     * @param sensor The unassigned sensor
+     * @param availableGateways List of available gateways
+     * @return Sensor response with suggestion
+     */
+    private SensorResponseWithSuggestion createSensorWithSuggestion(
+            Sensor sensor, List<Gateway> availableGateways) {
+
+        Gateway closestGateway = findClosestGateway(sensor, availableGateways);
+
+        SensorResponseWithSuggestion.SuggestedGateway suggestion = null;
+        if (closestGateway != null) {
+            double distance = DistanceUtil.calculateEuclideanDistance(
+                    sensor.getXCoordinate(), sensor.getYCoordinate(),
+                    closestGateway.getXCoordinate(), closestGateway.getYCoordinate()
+            );
+
+            suggestion = SensorResponseWithSuggestion.SuggestedGateway.builder()
+                    .id(closestGateway.getId())
+                    .name(closestGateway.getName())
+                    .xCoordinate(closestGateway.getXCoordinate())
+                    .yCoordinate(closestGateway.getYCoordinate())
+                    .distance(distance)
+                    .build();
+        }
+
+        return SensorResponseWithSuggestion.builder()
+                .id(sensor.getId())
+                .name(sensor.getName())
+                .xCoordinate(sensor.getXCoordinate())
+                .yCoordinate(sensor.getYCoordinate())
+                .createdAt(sensor.getCreatedAt())
+                .types(sensor.getTypes().stream()
+                        .map(type -> type.getType())
+                        .collect(Collectors.toList()))
+                .suggestedGateway(suggestion)
+                .build();
+    }
+
+    /**
+     * Find the closest gateway to a sensor
+     * @param sensor The sensor to find closest gateway for
+     * @param availableGateways List of available gateways
+     * @return Closest gateway or null if none available
+     */
+    private Gateway findClosestGateway(Sensor sensor, List<Gateway> availableGateways) {
+        if (availableGateways.isEmpty() ||
+                sensor.getXCoordinate() == null ||
+                sensor.getYCoordinate() == null) {
+            return null;
+        }
+
+        Gateway closestGateway = null;
+        double minDistance = Double.MAX_VALUE;
+
+        for (Gateway gateway : availableGateways) {
+            if (gateway.getXCoordinate() != null && gateway.getYCoordinate() != null) {
+                double distance = DistanceUtil.calculateEuclideanDistance(
+                        sensor.getXCoordinate(), sensor.getYCoordinate(),
+                        gateway.getXCoordinate(), gateway.getYCoordinate()
+                );
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestGateway = gateway;
+                }
+            }
+        }
+
+        return closestGateway;
+    }
+
+
+
     //helper functions
 
 
@@ -156,15 +250,23 @@ public class SensorService {
 
     public void generateGatewaysAndSensors() {
 
-        // 1) Get all gateways
-//        List<Gateway> gateways = gatewayRepo.findAll();
+        // 1) Create gateways with coordinates
         List<Gateway> gateways = IntStream.rangeClosed(1, 5)
                 .mapToObj(i -> {
                     Gateway g = new Gateway();
                     g.setName("GW-" + UUID.randomUUID().toString().substring(0, 8));
+
+                    // Generate random coordinates for gateways
+                    // Using a coordinate system from 0 to 1000 for both x and y
+                    g.setXCoordinate(BigDecimal.valueOf(random.nextDouble() * 1000)
+                            .setScale(6, RoundingMode.HALF_UP));
+                    g.setYCoordinate(BigDecimal.valueOf(random.nextDouble() * 1000)
+                            .setScale(6, RoundingMode.HALF_UP));
+
                     return gatewayRepo.save(g);
                 })
                 .toList();
+
         // 2) Fetch types once
         List<SensorType> types = sensorTypeRepository.findAll();
 
@@ -173,7 +275,14 @@ public class SensorService {
             Sensor s = new Sensor();
             s.setName("Sensor-" + i);
 
-            // assign gateway 80% of the time
+            // Generate random coordinates for sensors
+            // Using the same coordinate system (0-1000) as gateways
+            s.setXCoordinate(BigDecimal.valueOf(random.nextDouble() * 1000)
+                    .setScale(6, RoundingMode.HALF_UP));
+            s.setYCoordinate(BigDecimal.valueOf(random.nextDouble() * 1000)
+                    .setScale(6, RoundingMode.HALF_UP));
+
+            // Assign gateway 80% of the time
 //            if (random.nextDouble() < 0.8) {
                 Gateway pick = gateways.get(random.nextInt(gateways.size()));
                 s.setGateway(pick);
@@ -200,12 +309,22 @@ public class SensorService {
 
         sensorRepo.flush();
 
+        // Enhanced logging to show coordinates and gateway assignments
         sensorRepo.findAll().forEach(s -> {
             String assigned = s.getTypes().stream()
                     .map(SensorType::getType)
                     .collect(Collectors.joining(", "));
+
+            String gatewayInfo = s.getGateway() != null ?
+                    " | Gateway: " + s.getGateway().getName() +
+                            " (GW coords: " + s.getGateway().getXCoordinate() + ", " + s.getGateway().getYCoordinate() + ")" :
+                    " | No Gateway";
+
             System.out.println(
-                    "Sensor " + s.getName() + " has types: " + assigned
+                    "Sensor " + s.getName() +
+                            " at (" + s.getXCoordinate() + ", " + s.getYCoordinate() + ")" +
+                            " has types: " + assigned +
+                            gatewayInfo
             );
         });
     }

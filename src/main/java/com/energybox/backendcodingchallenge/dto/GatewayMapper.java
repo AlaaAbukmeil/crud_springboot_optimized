@@ -23,6 +23,8 @@ public class GatewayMapper {
         response.setId(gateway.getId());
         response.setName(gateway.getName());
         response.setCreatedAt(gateway.getCreatedAt());
+        response.setXCoordinate(gateway.getXCoordinate());
+        response.setYCoordinate(gateway.getYCoordinate());
 
         // Map sensors
         if (gateway.getSensors() != null) {
@@ -55,6 +57,8 @@ public class GatewayMapper {
 
         Gateway gateway = new Gateway();
         gateway.setName(request.getName());
+        gateway.setXCoordinate(request.getXCoordinate());
+        gateway.setYCoordinate(request.getYCoordinate());
 
         return gateway;
     }
@@ -64,6 +68,8 @@ public class GatewayMapper {
         GatewayResponse.SensorInfo info = new GatewayResponse.SensorInfo();
         info.setId(sensor.getId());
         info.setName(sensor.getName());
+        info.setXCoordinate(sensor.getXCoordinate());
+        info.setYCoordinate(sensor.getYCoordinate());
 
         if (sensor.getTypes() != null) {
             List<String> types = sensor.getTypes().stream()
