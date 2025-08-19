@@ -25,6 +25,7 @@ public class SensorMapper {
         response.setCreatedAt(sensor.getCreatedAt());
         response.setXCoordinate(sensor.getXCoordinate());
         response.setYCoordinate(sensor.getYCoordinate());
+        response.setGatewayId(sensor.getGatewayId());
 
 //        // Map gateway
 //        if (sensor.getGateway() != null) {

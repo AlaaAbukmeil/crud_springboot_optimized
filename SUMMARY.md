@@ -7,14 +7,26 @@ mvn clean compile
 mvn spring-boot:run
 
 
-Good Practices:
-    1. Use DTO instead of exposing JPA entities directly
-    2. Global exception handler
-    3. Paging data
-    4. Validate request body
-    5. Lazy loading. Understanding goal of query
+Goals:
+    Query all sensors which may have an assigned gateway. Each sensor can have multiple types
+    Query all gateways
+    Query gateways that have sensors with certain type
+    CRUD for each
+    Suggest nearest gateway for un assigned sensor*
 
+    
 
+/
+    init.sql this file creates the initial schemas for tables in the db hosted in the docker container. make note of the index used and cascade
+    /src/main/java/energybox
+        /controller handles API requests
+        /domain defines model classes
+        /dto data transfer object, expose only necessary info to client
+        /exceptions handle api errors.
+        /repo defines jpa repository
+        /service business logic
+        /util calculate distance between two points 2D
+        
 
 Test API:
 
@@ -41,8 +53,8 @@ Test API:
 10. POST sensors
     Create a new sensor and assign it to gateway 2. 
     try with invalid type
-11. try with gateway 10
-11. POST sensors/1001/assign
+    try with gateway 10
+11. PUT sensors/1001/assign
     Assign the newly created sensor to gateway 6
 12. GET sensors/gateway/6
     Show that the newly created sensor got reassigned
@@ -59,4 +71,12 @@ Test API:
     Send a new message. remove readingTime
 18. GET sensors/readings/sensor/{sensorId}
     Show all last reading of a sensor ID
-    
+
+
+Good Practices:
+1. Use DTO instead of exposing JPA entities directly
+2. Global exception handler
+3. Paging data
+4. Validate request body
+5. Lazy loading. Understanding goal of query
+6. small git changes

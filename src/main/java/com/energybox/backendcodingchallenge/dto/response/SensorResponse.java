@@ -20,6 +20,8 @@ public class SensorResponse {
     private BigDecimal xCoordinate;
     private BigDecimal yCoordinate;
 
+    private Long gatewayId;
+
 //    @Data
 //    public static class GatewayInfo {
 //        private Long id;

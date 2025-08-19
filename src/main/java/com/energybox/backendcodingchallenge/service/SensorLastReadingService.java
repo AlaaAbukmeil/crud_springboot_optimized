@@ -33,9 +33,13 @@ public class SensorLastReadingService {
         SensorType sensorType = sensorTypeRepository.findByType(request.getSensorType())
                 .orElseThrow(() -> new EntityNotFoundException("Sensor type not found: " + request.getSensorType()));
 
+        System.out.println(request.getSensorType());
         if (!sensor.getTypes().contains(sensorType)) {
-            throw new IllegalArgumentException("Sensor " + request.getSensorId() + " does not support type: " + request.getSensorType());
+            System.out.println("yes");
+
+            throw new EntityNotFoundException("Sensor with id: " +request.getSensorId() + " does not have sensor type: " + request.getSensorType());
         }
+
 
         Optional<SensorLastReading> existingReading = repo.findBySensorIdAndSensorTypeId(
                 request.getSensorId(),

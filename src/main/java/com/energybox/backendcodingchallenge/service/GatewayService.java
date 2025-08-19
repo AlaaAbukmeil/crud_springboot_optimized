@@ -34,7 +34,7 @@ public class GatewayService {
         sensorTypeRepository.findByType(type)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "SensorType '" + type + "' not found"));
-        return repo.findDistinctBySensors_Types_Type(type);
+        return repo.findGatewaysByType(type);
     }
 
     public void deleteById(Long id) {

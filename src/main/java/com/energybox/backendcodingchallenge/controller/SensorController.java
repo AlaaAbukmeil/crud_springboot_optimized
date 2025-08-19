@@ -132,7 +132,7 @@ public class SensorController {
             @ApiResponse(responseCode = "404", description = "Sensor not found")
     })
     @DeleteMapping("/{sensorId}")
-    public ResponseEntity<Void> deleteSensor(@PathVariable Long sensorId) {  // ← Fixed: consistent return type
+    public ResponseEntity<Void> deleteSensor(@PathVariable Long sensorId) {
         sensorService.deleteSensor(sensorId);
         return ResponseEntity.noContent().build();
     }

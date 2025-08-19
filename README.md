@@ -1,8 +1,3 @@
-# Energybox Backend Coding Challenge
-
-Please complete the assignment detailed below email me back with your code either zipped as an attachment or a link to where you're working on the code ( ie GitHub, bitbucket, gitlab etc. ) Please also suggest a time early next week when we can spend 45 minutes to an 1 hour reviewing your work.
-
-You may be busy during normal business hours, so I am open to accommodate almost any time. If you have any questions or concerns, feel free to reach out to me via email (mugeesh.husain@energybox.com). I will try to reply as quickly as possible.
 
 ### Tech to Use
 
@@ -13,13 +8,6 @@ You may be busy during normal business hours, so I am open to accommodate almost
 - PostgresDB
 - docker-compose
 
-### Getting Started
-1. https://bitbucket.org/energybox/backend-coding-challenge-postgres/src/master/
-2. fork the repository
-3. docker compose up -d
-4. check docker ps, see if postgresDB is running or not
-5. run the application
-6. http://localhost:8082/api/v1/swagger-ui.html
 
 You'll need to set up a local PostgresDB instance. A Docker Compose file is included in the sample project for convenience.
 Don't feel obligated to spend any more than 2-5 hours on this. You're welcome to spend more time if you're having fun, but you won't be judged on how much you complete.

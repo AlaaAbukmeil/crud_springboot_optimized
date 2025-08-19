@@ -35,7 +35,11 @@ public class Sensor {
     @CreationTimestamp
     private Instant createdAt;
 
-//    lazy so gateway is not queried, if gateway is deleted, then gateway id is just null
+    @Column(name = "gateway_id", insertable = false, updatable = false)
+    private Long gatewayId;
+
+
+    //    lazy so gateway is not queried, if gateway is deleted, then gateway id is just null
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gateway_id")
     @OnDelete(action = OnDeleteAction.SET_NULL)
